@@ -1,0 +1,25 @@
+# Do not remove this line, otherwise mod_rewrite rules will stop working
+Options +MultiViews
+RewriteEngine On
+RewriteBase /
+
+#Prevent viewing of .htaccess file
+<Files .htaccess>
+order allow,deny
+deny from all
+</Files>
+
+#Prevent directory listings
+Options All -Indexes
+
+#Error Documents
+ErrorDocument 400 /Neutrino/admins/error.php?code=400
+ErrorDocument 401 /Neutrino/admins/error.php?code=401
+ErrorDocument 402 /Neutrino/admins/error.php?code=402
+ErrorDocument 403 /Neutrino/admins/error.php?code=403
+ErrorDocument 404 /Neutrino/admins/error.php?code=404
+ErrorDocument 500 /Neutrino/admins/error.php?code=500
+ErrorDocument 503 /Neutrino/admins/error.php?code=503
+
+
+DirectoryIndex home.php
