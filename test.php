@@ -1,3 +1,3 @@
 <?php
-echo time().'<br><br>'.md5("student12");
+echo time().'<br>Hi<br>'.md5("student12");
 ?>
