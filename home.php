@@ -143,12 +143,16 @@ require("userdata.php");
         <ul class="list-unstyled navigation mb-0">
           <li class="sidebar-category">Main</li>
           <li class="panel"><a href="home.php" class="active"><i class="ti-home"></i><span class="sidebar-title">Home</span></a></li>
-          <li class="panel"><a href="chats.php" class="bubble"><i class="ti-comments"></i><span class="sidebar-title">Chats</span><span class="badge bg-danger">2</span></a></li>
+          <li class="panel"><a href="chats.php" class="bubble"><i class="ti-comments"></i><span class="sidebar-title">Chats</span><span class="badge bg-danger"><?php
+		  $sql="SELECT c1.*,c2.* FROM `chats_members` c1, `chats_msgs` c2 WHERE c1.uid='$u_uid' AND c1.cid=c2.cid AND c2.mid>c1.last_seen_mid";
+		  $result=$conn->query($sql);
+		  if($result->num_rows>0){echo $result->num_rows;}
+		  ?></span></a></li>
           <li class="panel"><a href="cv.php"><i class="ti-id-badge"></i><span class="sidebar-title">CV Designer </span><span class="label label-outline label-danger">New</span></a></li>
+          <li class="panel"><a href="ideas.php"><i class="ti-light-bulb"></i><span class="sidebar-title">Ideas </span></a></li>
           <li class="panel"><a href="projects.php"><i class="ti-briefcase"></i><span class="sidebar-title">Projects </span></a></li>
           <li class="panel"><a href="kzone.php"><i class="ti-blackboard"></i><span class="sidebar-title">Knowledge Zone </span></a></li>
           <li class="panel"><a href="settings.php"><i class="ti-settings"></i><span class="sidebar-title">Settings </span></a></li>
-          <li class="panel"><a href="suggestions.php"><i class="ti-light-bulb"></i><span class="sidebar-title">Suggestion Box </span></a></li>
           <li class="panel"><a href="logout.php"><i class="ti-power-off"></i><span class="sidebar-title">Logout </span></a></li>
 		</ul>
       </aside>
@@ -165,9 +169,9 @@ require("userdata.php");
 							<div class="pull-left"><a href="javascript:;" class="widget-reload"><i class="ti-control-record text-muted"></i></a></div>
 							<div class="pull-right"><a href="javascript:;" class="widget-remove"><i class="ti-trash text-muted"></i></a></div>
 						  </div>
-						  <h5 class="mb-5">New Comments</h5>
-						  <div class="fs-36 fw-600 mb-20 counter">1,206</div>
-						  <div id="esp-comment" data-percent="75" style="height: 140px; width: 140px; line-height: 120px; padding: 10px;" class="easy-pie-chart fs-36"><i class="ti-comment-alt text-muted"></i></div>
+						  <h5 class="mb-5">New Ideas</h5>
+						  <div class="fs-36 fw-600 mb-20 counter">12</div>
+						  <div id="esp-comment" data-percent="75" style="height: 140px; width: 140px; line-height: 120px; padding: 10px;" class="easy-pie-chart fs-36"><i class="ti-light-bulb text-muted"></i></div>
 						  <div class="clearfix mt-20">
 							<div class="pull-left">
 							  <div class="fs-12">Today</div>
@@ -188,9 +192,9 @@ require("userdata.php");
 							<div class="pull-left"><a href="javascript:;" class="widget-reload"><i class="ti-control-record text-muted"></i></a></div>
 							<div class="pull-right"><a href="javascript:;" class="widget-remove"><i class="ti-trash text-muted"></i></a></div>
 						  </div>
-						  <h5 class="mb-5">New Photos</h5>
-						  <div class="fs-36 fw-600 mb-20 counter">350</div>
-						  <div id="esp-photo" data-percent="55" style="height: 140px; width: 140px; line-height: 120px; padding: 10px;" class="easy-pie-chart fs-36"><i class="ti-image text-muted"></i></div>
+						  <h5 class="mb-5">Total Projects</h5>
+						  <div class="fs-36 fw-600 mb-20 counter">5</div>
+						  <div id="esp-photo" data-percent="55" style="height: 140px; width: 140px; line-height: 120px; padding: 10px;" class="easy-pie-chart fs-36"><i class="ti-briefcase text-muted"></i></div>
 						  <div class="clearfix mt-20">
 							<div class="pull-left">
 							  <div class="fs-12">Today</div>
@@ -213,9 +217,9 @@ require("userdata.php");
 							<div class="pull-left"><a href="javascript:;" class="widget-reload"><i class="ti-control-record text-muted"></i></a></div>
 							<div class="pull-right"><a href="javascript:;" class="widget-remove"><i class="ti-trash text-muted"></i></a></div>
 						  </div>
-						  <h5 class="mb-5">New Users</h5>
-						  <div class="fs-36 fw-600 mb-20 counter">890</div>
-						  <div id="esp-user" data-percent="30" style="height: 140px; width: 140px; line-height: 120px; padding: 10px;" class="easy-pie-chart fs-36"><i class="ti-user text-muted"></i></div>
+						  <h5 class="mb-5">New KZone Posts</h5>
+						  <div class="fs-36 fw-600 mb-20 counter">8</div>
+						  <div id="esp-user" data-percent="30" style="height: 140px; width: 140px; line-height: 120px; padding: 10px;" class="easy-pie-chart fs-36"><i class="ti-blackboard text-muted"></i></div>
 						  <div class="clearfix mt-20">
 							<div class="pull-left">
 							  <div class="fs-12">Today</div>
@@ -237,7 +241,7 @@ require("userdata.php");
 							<div class="pull-right"><a href="javascript:;" class="widget-remove"><i class="ti-trash text-muted"></i></a></div>
 						  </div>
 						  <h5 class="mb-5">New Feedbacks</h5>
-						  <div class="fs-36 fw-600 mb-20 counter">1,609</div>
+						  <div class="fs-36 fw-600 mb-20 counter">16</div>
 						  <div id="esp-feedback" data-percent="20" style="height: 140px; width: 140px; line-height: 120px; padding: 10px;" class="easy-pie-chart fs-36"><i class="ti-receipt text-muted"></i></div>
 						  <div class="clearfix mt-20">
 							<div class="pull-left">

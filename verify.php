@@ -83,7 +83,7 @@ else if(isset($_POST["update_chats"])){
 	$current_cid=$_POST["cid"];
 	$last_convo_mid=$_POST["last_convo_mid"];
 	$new_current_msgs='';
-	$sql="SELECT * FROM `chats_msgs` WHERE cid='$current_cid' AND mid>'$last_convo_mid'";
+	$sql="SELECT * FROM `chats_msgs` WHERE cid='$current_cid' AND mid>'$last_convo_mid' ORDER BY mid";
 	$result=$conn->query($sql);
 	if($result->num_rows>0){
 		$picture=0;
@@ -95,7 +95,7 @@ else if(isset($_POST["update_chats"])){
 			}
 			$last_convo_mid=$row["mid"];
 			if($row["uid"]!=$uid){
-				$new_current_msgs='<li class="media"><div class="media-left avatar"><img src="build/images/avatars/'.$picture.'.png" alt="" class="media-object img-circle"><span class="status bg-success"></span></div><div class="media-body"><p><strong>'.$fname.'</strong>: '.$row["msg"].'</p><time datetime="2015-12-10T20:50:48+05:30" class="fs-11 text-muted">'.gmdate("h:i A",$row["sent_on"]+19800).' </time></div></li>';
+				$new_current_msgs='<li class="media" id="chat_msg_'.$row["mid"].'"><div class="media-left avatar"><img src="build/images/avatars/'.$picture.'.png" alt="" class="media-object img-circle"><span class="status bg-success"></span></div><div class="media-body"><p><strong>'.$fname.'</strong>: '.$row["msg"].'</p><time datetime="2015-12-10T20:50:48+05:30" class="fs-11 text-muted">'.gmdate("h:i A",$row["sent_on"]+19800).' </time></div></li>';
 			}
 		}
 	}
@@ -128,6 +128,7 @@ else if(isset($_POST["update_chats"])){
 	$response["code"]="UPDATE_CHATS_SUC";
 	$response["new_msgs"]=json_encode($new_msgs);
 	$response["new_current_msgs"]=$new_current_msgs;
+	$response["current_cid"]=$current_cid;
 	$response["last_convo_mid"]=$last_convo_mid;
 
 }
@@ -157,7 +158,7 @@ else if(isset($_POST["get_convo"])){
 			if($result2->num_rows>0){
 				while($row2=$result2->fetch_assoc()){
 					if($row2["uid"]==$uid){
-						$convo_msgs.= '<li class="media other">
+						$convo_msgs.= '<li class="media other" id="chat_msg_'.$row2["mid"].'">
 								<div class="media-right avatar"><img src="build/images/avatars/'.GetUserData($row2["uid"],"picture").'.png" alt="" class="media-object img-circle"><span class="status bg-success"></span></div>
 								<div class="media-body">
 								  <p>'.$row2["msg"].'</p>
@@ -170,7 +171,7 @@ else if(isset($_POST["get_convo"])){
 						if($last_convo_mid==0){
 							$last_convo_mid=$row2["mid"];
 						}
-						$convo_msgs.= '<li class="media">
+						$convo_msgs.= '<li class="media" id="chat_msg_'.$row2["mid"].'">
 								<div class="media-left avatar"><img src="build/images/avatars/'.GetUserData($row2["uid"],"picture").'.png" alt="" class="media-object img-circle"><span class="status bg-success"></span></div>
 								<div class="media-body">
 								  <p><strong>'.GetUserData($row2["uid"],"first_name").'</strong>: '.$row2["msg"].'</p>
@@ -292,10 +293,7 @@ else if(isset($_GET["get_users_list"])){
 			if($row["uid"]==$uid){
 				$response["current_user"]=$row["first_name"]." ".$row["last_name"];
 			}
-			else
-			{
-				$response["options"][]=$row["first_name"]." ".$row["last_name"];
-			}
+			$response["options"][]=$row["first_name"]." ".$row["last_name"];
 		}
 	}
 	else
@@ -303,6 +301,63 @@ else if(isset($_GET["get_users_list"])){
 		$response["msg"]="Conversation not found";
 		$response["code"]="GET_USERS_LIST_ERR_1";
 		$response["cid"]=$cid;
+	}
+}
+else if(isset($_GET["get_other_users_list"])){
+	$u_uid=$_COOKIE["uid"];
+	$cid=$_GET["cid"];
+	$response=array("options"=>array());
+	$sql="SELECT * FROM users WHERE users.uid NOT IN (SELECT uid FROM chats_members WHERE cid='$cid')";
+	$result=$conn->query($sql);
+	if($result->num_rows>0){
+		while($row=$result->fetch_assoc()){
+			$response["options"][]=$row["first_name"]." ".$row["last_name"];
+		}
+	}
+}
+else if(isset($_POST["create_new_group"])){
+	$u_uid=$_COOKIE["uid"];
+	$uids=array();
+	$uids[]=$u_uid;
+	$name=$_POST["name"];
+	$members=$_POST["members"];
+	foreach($members as $member){
+		$sql="SELECT * FROM users WHERE CONCAT_WS(' ',first_name,last_name)='$member'";
+		$result=$conn->query($sql);
+		if($result->num_rows>0){
+			while($row=$result->fetch_assoc()){
+				$uids[]=$row["uid"];
+			}
+		}
+	}
+	$picture="0";
+	$no_of_users=sizeof($uids);
+	$created_on=time();
+	$sql="INSERT INTO `chats` (`name`,`picture`,`created_on`,`no_of_users`) VALUES ('$name','$picture','$created_on','$no_of_users')";
+	if(mysqli_query($conn,$sql)){
+		$cid=mysqli_insert_id($conn);
+		$sql2="";
+		foreach($uids as $uid){
+			$sql2.="INSERT INTO `chats_members` (`cid`,`uid`,`joined_on`) VALUES ('$cid','$uid','$created_on');";
+		}
+		if(mysqli_multi_query($conn,$sql2)){
+			$response["msg"]="Group Created Successfully";
+			$response["code"]="CREATE_NEW_GROUP_SUC";
+			$response["convo_cid"]=$cid;
+			$response["convo_title"]=$name;
+			$response["convo_picture"]=$picture;
+		}
+		else
+		{
+			$conn->rollback();
+			$response["msg"]="Unable to add members to group";
+			$response["code"]="CREATE_NEW_GROUP_ERR_2";
+		}
+	}
+	else
+	{
+		$response["msg"]="Unable to create group";
+		$response["code"]="CREATE_NEW_GROUP_ERR_1";
 	}
 }
 

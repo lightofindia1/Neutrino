@@ -11,7 +11,7 @@ require("userdata.php");
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Settings | Neutrino</title>
+    <title>Ideas | Neutrino</title>
     <!-- PACE-->
     <link rel="stylesheet" type="text/css" href="plugins/PACE/themes/blue/pace-theme-flash.css">
     <script type="text/javascript" src="plugins/PACE/pace.min.js"></script>
@@ -27,6 +27,8 @@ require("userdata.php");
     <link rel="stylesheet" type="text/css" href="plugins/flag-icon-css/css/flag-icon.min.css">
     <!-- Bootstrap Progressbar-->
     <link rel="stylesheet" type="text/css" href="plugins/bootstrap-progressbar/css/bootstrap-progressbar-3.3.4.min.css">
+    <!-- DataTables-->
+    <link rel="stylesheet" type="text/css" href="plugins/datatables.net-bs/css/dataTables.bootstrap.min.css">
     <!-- Primary Style-->
     <link rel="stylesheet" type="text/css" href="build/css/third-layout.css">
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries-->
@@ -160,73 +162,55 @@ require("userdata.php");
       <div class="page-container">
         <div class="page-header clearfix">
           <div class="row">
-            <div class="col-md-6">
+            <div class="col-lg-12">
               <div class="widget">
                 <div class="widget-heading">
-                  <h3 class="widget-title">Email Settings</h3>
+                  <h3 class="widget-title">Ideas <button class="btn btn-primary pull-right"><i class="glyphicon glyphicon-plus"></i> New</button><div class="clearfix"></div></h3>
                 </div>
                 <div class="widget-body">
-                  <form id="update_email" action="#" method="post">
-                    <h5>I would like to receive mail when:</h5>
-					<div class="row" style="margin-top:30px">
-						<div class="form-group">
-                          <label class="col-xs-8 control-label" for="email_1" style="padding-top:10px">When someone logs into my account</label>
-                          <div class="col-xs-3">
-                            <div class="switch">
-                              <input id="email_1" type="checkbox" value="option1" checked="checked">
-                              <label for="email_1" class="switch-success"></label>
-                            </div>
-                          </div>
-                        </div>
-						<div class="form-group">
-                          <label class="col-xs-8 control-label" for="email_2" style="padding-top:10px">When I receive a new message</label>
-                          <div class="col-xs-3">
-                            <div class="switch">
-                              <input id="email_2" type="checkbox" value="option1" checked="checked">
-                              <label for="email_2" class="switch-success"></label>
-                            </div>
-                          </div>
-                        </div>
-						<div class="form-group">
-                          <label class="col-xs-8 control-label" for="email_3" style="padding-top:10px">Monthly Overview</label>
-                          <div class="col-xs-3">
-                            <div class="switch">
-                              <input id="email_3" type="checkbox" value="option1" checked="checked">
-                              <label for="email_3" class="switch-success"></label>
-                            </div>
-                          </div>
-                        </div>
-					</div>
-                    <button type="submit" class="btn btn-outline btn-success">Update</button>
-                  </form>
+                  <table id="ideas" cellspacing="0" width="100%" class="table table-striped table-bordered">
+                    <thead>
+                      <tr>
+                        <th>Title</th>
+                        <th>By</th>
+                        <th>Rating</th>
+                        <th>Posted On</th>
+                        <th>Status</th>
+                        <th>Options</th>
+                      </tr>
+                    </thead>
+                    <tfoot>
+                      <tr>
+                        <th>Title</th>
+                        <th>By</th>
+                        <th>Rating</th>
+                        <th>Posted On</th>
+                        <th>Status</th>
+                        <th>Options</th>
+                      </tr>
+                    </tfoot>
+                    <tbody>
+                      <tr>
+                        <td>Voice Recognition</td>
+                        <td>Manikiran</td>
+                        <td>6.1</td>
+                        <td>2016/10/26</td>
+						<td>Unread</td>
+                        <td><button class="btn btn-sm"><i class="glyphicon glyphicon-new-window"></i> Open</button></td>
+                      </tr>
+                      <tr>
+                        <td>Time Table Generator</td>
+                        <td>Neutrino</td>
+                        <td>8.6</td>
+                        <td>2016/8/25</td>
+						<td>Read</td>
+                        <td><button class="btn btn-sm"><i class="glyphicon glyphicon-new-window"></i> Open</button></td>
+                      </tr>
+					</tbody>
+                  </table>
                 </div>
               </div>
-            </div>
-            <div class="col-md-6" style="text-align:left">
-              <div class="widget">
-                <div class="widget-heading">
-                  <h3 class="widget-title">Update Password</h3>
-                </div>
-                <div class="widget-body">
-                  <form id="update_password" action="#" method="post">
-                    <div class="form-group">
-                      <label for="old_password">Old Password</label>
-                      <input id="old_password" type="password" class="form-control">
-                    </div>
-                    <div class="form-group">
-                      <label for="new_password">New Password</label>
-                      <input id="new_password" type="password" class="form-control">
-                    </div>
-                    <div class="form-group">
-                      <label for="new_password_r">Repeat New Password</label>
-                      <input id="new_password_r" type="password" class="form-control">
-                    </div>
-                    <button type="submit" class="btn btn-outline btn-success">Update</button>
-                  </form>
-                </div>
-              </div>
-            </div>
-          </div>
+			</div>
         </div>
         <div class="page-content container-fluid"></div>
         <div class="footer">2017 &copy;  <a href="https://www.neutrino.cf">Neutrino</a> by <a href="http://www.manikiran.tk" target="_blank">Manikiran.</a></div>
@@ -243,10 +227,31 @@ require("userdata.php");
     <script type="text/javascript" src="plugins/animo.js/animo.min.js"></script>
     <!-- Bootstrap Progressbar-->
     <script type="text/javascript" src="plugins/bootstrap-progressbar/bootstrap-progressbar.min.js"></script>
+    <!-- DataTables-->
+    <script type="text/javascript" src="plugins/datatables.net/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="plugins/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
     <!-- jQuery Easy Pie Chart-->
     <script type="text/javascript" src="plugins/jquery.easy-pie-chart/dist/jquery.easypiechart.min.js"></script>
     <!-- Custom JS-->
     <script type="text/javascript" src="build/js/third-layout/app.js"></script>
     <script type="text/javascript" src="build/js/third-layout/demo.js"></script>
+	<script>
+	$(document).ready(function(){
+		$("#ideas").dataTable({
+			"order": [[ 3, "desc" ]],
+			"lengthMenu": [[25, 50, -1], [25, 50, "All"]],
+			"fnRowCallback": function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
+				switch(aData[4]){
+					case 'Unread':
+						$(nRow).css('color', 'red')
+						break;
+					case 'Read':
+						$(nRow).css('color', 'green')
+						break;
+				}
+			}
+		});
+	});
+	</script>
   </body>
 </html>

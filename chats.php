@@ -86,6 +86,7 @@ require("userdata.php");
     <![endif]-->
   </head>
   <body>
+	<div class="preloader-screen"><div class="preloader"></div></div>
     <!-- Header start-->
     <header>
       <div class="search-bar closed">
@@ -198,10 +199,10 @@ require("userdata.php");
 		  if($result->num_rows>0){echo $result->num_rows;}
 		  ?></span></a></li>
           <li class="panel"><a href="cv.php"><i class="ti-id-badge"></i><span class="sidebar-title">CV Designer </span><span class="label label-outline label-danger">New</span></a></li>
+          <li class="panel"><a href="ideas.php"><i class="ti-light-bulb"></i><span class="sidebar-title">Ideas </span></a></li>
           <li class="panel"><a href="projects.php"><i class="ti-briefcase"></i><span class="sidebar-title">Projects </span></a></li>
           <li class="panel"><a href="kzone.php"><i class="ti-blackboard"></i><span class="sidebar-title">Knowledge Zone </span></a></li>
           <li class="panel"><a href="settings.php"><i class="ti-settings"></i><span class="sidebar-title">Settings </span></a></li>
-          <li class="panel"><a href="suggestions.php"><i class="ti-light-bulb"></i><span class="sidebar-title">Suggestion Box </span></a></li>
           <li class="panel"><a href="logout.php"><i class="ti-power-off"></i><span class="sidebar-title">Logout </span></a></li>
 		</ul>
       </aside>
@@ -297,6 +298,7 @@ require("userdata.php");
 							<ul class="dropdown-menu chat-settings">
 							  <li><a href="javascript:;" class="convo_edit_name">Edit Name</a></li>
 							  <li><a href="#">Change Picture</a></li>
+							  <li><a href="#">Group Info</a></li>
 							  <li role="separator" class="divider"></li>
 							  <li><a href="#">Leave Conversation</a></li>
 							</ul>
@@ -311,7 +313,7 @@ require("userdata.php");
 				  if($result->num_rows>0){
 						while($row=$result->fetch_assoc()){
 							if($row["uid"]==$u_uid){
-								echo '<li class="media other">
+								echo '<li class="media other" id="chat_msg_'.$row["mid"].'">
 										<div class="media-right avatar"><img src="'.$u_picture.'" alt="" class="media-object img-circle"><span class="status bg-success"></span></div>
 										<div class="media-body">
 										  <p>'.$row["msg"].'</p>
@@ -322,7 +324,7 @@ require("userdata.php");
 							else
 							{
 								$last_convo_mid=$row["mid"];
-								echo '<li class="media">
+								echo '<li class="media" id="chat_msg_'.$row["mid"].'">
 										<div class="media-left avatar"><img src="build/images/avatars/'.GetUserData($row["uid"],"picture").'.png" alt="" class="media-object img-circle"><span class="status bg-success"></span></div>
 										<div class="media-body">
 										  <p><strong>'.GetUserData($row["uid"],"first_name").'</strong>: '.$row["msg"].'</p>
@@ -411,7 +413,7 @@ require("userdata.php");
 		  <div class="modal-content">
 			<div class="modal-header">
 			  <button type="button" data-dismiss="modal" aria-label="Close" class="close"><span aria-hidden="true"><i class="ti-close"></i></span></button>
-			  <h4 id="AddUsersToGroupModalLabel" class="modal-title">Create Group</h4>
+			  <h4 id="AddUsersToGroupModalLabel" class="modal-title">Add Members to Group</h4>
 			</div>
 			<div class="modal-body">
 			  <div class="form-group">
@@ -560,11 +562,19 @@ require("userdata.php");
 					}
 					catch(err){}
 				},
-				error:function(response){}
+				error:function(response){},
+				complete:function(x,y){
+					$('[id]').each(function() {
+						var $ids = $('[id=' + this.id + ']');
+						if ($ids.length > 1) {
+							$ids.not(':first').remove();
+						}
+					});
+				}
 			});
 		},2000);
 
-		$(".conversation-toggle").click(function(){
+		$("body").on("click",".conversation-toggle",function(){
 			var cid=this.id.split("_")[2];
 			var current_cid=$("#current_chat_open").val();
 			if(cid==0){
@@ -591,6 +601,7 @@ require("userdata.php");
 								if(resp.new_current_msgs){
 									$("#open_chat_ul").append(resp.new_current_msgs);
 								}
+								localStorage.setItem("current_mids",[]);
 							}
 							else
 							{
@@ -628,6 +639,7 @@ require("userdata.php");
 								if(resp.new_current_msgs){
 									$("#open_chat_ul").append(resp.new_current_msgs);
 								}
+								localStorage.setItem("current_mids",resp.current_mids);
 							}
 							else
 							{
@@ -700,40 +712,128 @@ require("userdata.php");
 			}
 		});
 		$("#add_users_btn").click(function(){
+			$(".preloader-screen").fadeIn();
 			if($("#convo_no_of_users").val()==2){
 				$("#create_new_group").modal("show");
-				$("#cg_convo_name").maxlength({alwaysShow:!0,threshold:10,warningClass:"label label-info",limitReachedClass:"label label-danger"})
+				$("#cg_convo_name").maxlength({alwaysShow:!0,threshold:10,warningClass:"label label-info",limitReachedClass:"label label-danger"});
+				var users=[];
+				$.get('verify.php', { "get_users_list": true, "cid": $("#current_chat_open").val() }, function (data) {
+					resp=JSON.parse(data);
+					users=resp.options;
+					var users = new Bloodhound({
+					  datumTokenizer: Bloodhound.tokenizers.whitespace,
+					  queryTokenizer: Bloodhound.tokenizers.whitespace,
+					  // `states` is an array of state names defined in "The Basics"
+					  local: users
+					});
+					users.initialize();
+					if($("#cg_convo_members").val()!=""){$("#cg_convo_members").tagsinput('destroy');}
+					$("#cg_convo_members").val(resp.current_user);
+					$('#cg_convo_members').tagsinput({
+					  /*itemText: function(item) {
+						  return item.split("-")[0];
+					  },*/
+					  typeaheadjs: {
+						name: 'users',
+						source: users.ttAdapter(),
+						freeInput: false
+					  }
+					});
+					$(".preloader-screen").fadeOut();
+				});
 			}
 			else
 			{
 				$("#add_users_to_group").modal("show");
+				var users=[];
+				$.get('verify.php', { "get_other_users_list": true, "cid": $("#current_chat_open").val() }, function (data) {
+					resp=JSON.parse(data);
+					users=resp.options;
+					var users = new Bloodhound({
+					  datumTokenizer: Bloodhound.tokenizers.whitespace,
+					  queryTokenizer: Bloodhound.tokenizers.whitespace,
+					  // `states` is an array of state names defined in "The Basics"
+					  local: users
+					});
+					users.initialize();
+					if($("#autg_convo_members").val()!=""){$("#autg_convo_members").tagsinput('destroy');}
+					//$("#cg_convo_members").val(resp.current_user);
+					$('#autg_convo_members').tagsinput({
+					  /*itemText: function(item) {
+						  return item.split("-")[0];
+					  },*/
+					  typeaheadjs: {
+						name: 'users',
+						source: users.ttAdapter(),
+						freeInput: false
+					  }
+					});
+					$(".preloader-screen").fadeOut();
+				});
 			}
 		});
-		var users=[];
-		$.get('verify.php', { "get_users_list": true, "cid": $("#open_chat_ul").val() }, function (data) {
-			console.log(data);
-			resp=JSON.parse(data);
-			users=resp.options;
-			var users = new Bloodhound({
-			  datumTokenizer: Bloodhound.tokenizers.whitespace,
-			  queryTokenizer: Bloodhound.tokenizers.whitespace,
-			  // `states` is an array of state names defined in "The Basics"
-			  local: users
-			});
-			users.initialize();
-			$('#cg_convo_members').tagsinput({
-			  /*itemText: function(item) {
-				  return item.split("-")[0];
-			  },*/
-			  itemValue: function(item){return item.text;},
-			  typeaheadjs: {
-				name: 'users',
-				source: users.ttAdapter(),
-				freeInput: false
-			  }
-			});
-			$("#cg_convo_members").tagsinput('add',{"value":0,"text":resp.current_user});
+
+		$("#cg_submit").click(function(){
+			$(".preloader-screen").fadeIn();
+			var convo_name=$("#cg_convo_name").val();
+			var convo_members=$("#cg_convo_members").tagsinput('items');
+			if(convo_name.length<3)
+			{
+				$("#cg_convo_name").focus();
+				toastr.remove();toastr["error"]("Please enter valid name!", "Invalid Conversation Name");
+				$(".preloader-screen").fadeOut();
+			}
+			else if(convo_members.length<2){
+				$("#cg_convo_members").tagsinput('focus');
+				toastr.remove();toastr["error"]("Please add some users!", "Add Members");
+				$(".preloader-screen").fadeOut();
+			}
+			else
+			{
+				$.ajax({
+					url:"verify.php",
+					type:"POST",
+					data:{"create_new_group":true,"name":convo_name,"members":convo_members},
+					success:function(response){
+						console.log(response);
+						try{
+							var resp=JSON.parse(response);
+							if(resp.code=="CREATE_NEW_GROUP_SUC"){
+								$("#convo_title").html(resp.convo_title);
+								$("#convo_cid_"+$("#current_chat_open").val()).removeClass("active");
+								$(".chat-list").prepend('<li class="media"><a href="javascript:;" class="conversation-toggle active" id="convo_cid_'+resp.convo_cid+'"><div class="media-left avatar"><img src="build/images/avatars/'+resp.convo_picture+'.png" alt="" class="media-object img-circle"><span class="status bg-success"></span></div><div class="media-body"><h6 class="media-heading" id="convo_title_'+resp.convo_cid+'">'+convo_title+'</h6><p class="text-muted mb-0">You haven\'t started conversation!</p></div><div class="media-right"><span class="badge bg-danger" id="new_msgs_count_'+resp.convo_cid+'"></span></div></a></li>');
+								$("#current_chat_open").val(resp.convo_cid);
+								$("#convo_no_of_users").val(resp.convo_no_of_users);
+								$("#open_chat_ul").html("You haven't started conversation!");
+								$("#last_convo_mid").val("0");
+								var chatDiv = document.getElementById("open_chat_ul");
+								chatDiv.scrollTop = chatDiv.scrollHeight;
+								if(resp.new_current_msgs){
+									$("#open_chat_ul").append(resp.new_current_msgs);
+								}
+								$("#create_new_group").modal("hide");
+								$("#chat_msg").focus();
+								$(".preloader-screen").fadeOut();
+							}
+							else
+							{
+								toastr.remove();toastr["error"]("Server Error! Please try later!", "Unable to Create Group");
+								$(".preloader-screen").fadeOut();
+							}
+						}
+						catch(err){
+							toastr.remove();toastr["error"]("Please check your internet connection!", "Unable to Create Group");
+							$(".preloader-screen").fadeOut();
+						}
+					},
+					error:function(response){
+						toastr.remove();toastr["error"]("Please check your internet connection!", "Unable to Create Group");
+						$(".preloader-screen").fadeOut();
+					}
+				});
+			}
 		});
+		
 
 	});
 	</script>
