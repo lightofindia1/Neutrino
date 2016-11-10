@@ -25,10 +25,13 @@ require("userdata.php");
     <link rel="stylesheet" type="text/css" href="plugins/animo.js/animate-animo.min.css">
     <!-- Flag Icons-->
     <link rel="stylesheet" type="text/css" href="plugins/flag-icon-css/css/flag-icon.min.css">
+    <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <!-- Bootstrap Progressbar-->
     <link rel="stylesheet" type="text/css" href="plugins/bootstrap-progressbar/css/bootstrap-progressbar-3.3.4.min.css">
     <!-- DataTables-->
     <link rel="stylesheet" type="text/css" href="plugins/datatables.net-bs/css/dataTables.bootstrap.min.css">
+    <!-- DropzoneJS-->
+    <link rel="stylesheet" type="text/css" href="plugins/dropzone/dist/min/dropzone.min.css">
     <!-- Primary Style-->
     <link rel="stylesheet" type="text/css" href="build/css/third-layout.css">
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries-->
@@ -151,10 +154,10 @@ require("userdata.php");
 		  if($result->num_rows>0){echo $result->num_rows;}
 		  ?></span></a></li>
           <li class="panel"><a href="cv.php"><i class="ti-id-badge"></i><span class="sidebar-title">CV Designer </span><span class="label label-outline label-danger">New</span></a></li>
-          <li class="panel"><a href="ideas.php"><i class="ti-light-bulb"></i><span class="sidebar-title">Ideas </span></a></li>
+          <li class="panel"><a href="ideas.php" class="active"><i class="ti-light-bulb"></i><span class="sidebar-title">Ideas </span></a></li>
           <li class="panel"><a href="projects.php"><i class="ti-briefcase"></i><span class="sidebar-title">Projects </span></a></li>
           <li class="panel"><a href="kzone.php"><i class="ti-blackboard"></i><span class="sidebar-title">Knowledge Zone </span></a></li>
-          <li class="panel"><a href="settings.php" class="active"><i class="ti-settings"></i><span class="sidebar-title">Settings </span></a></li>
+          <li class="panel"><a href="settings.php"><i class="ti-settings"></i><span class="sidebar-title">Settings </span></a></li>
           <li class="panel"><a href="logout.php"><i class="ti-power-off"></i><span class="sidebar-title">Logout </span></a></li>
 		</ul>
       </aside>
@@ -165,10 +168,10 @@ require("userdata.php");
             <div class="col-lg-12">
               <div class="widget">
                 <div class="widget-heading">
-                  <h3 class="widget-title">Ideas <button class="btn btn-primary pull-right"><i class="glyphicon glyphicon-plus"></i> New</button><div class="clearfix"></div></h3>
+                  <h3 class="widget-title">Ideas <button class="btn btn-primary pull-right" id="add_new_idea"><i class="glyphicon glyphicon-plus"></i> New</button><div class="clearfix"></div></h3>
                 </div>
                 <div class="widget-body">
-                  <table id="ideas" cellspacing="0" width="100%" class="table table-striped table-bordered">
+                  <table id="ideas" cellspacing="0" width="100%" class="table table-hover dt-responsive nowrap">
                     <thead>
                       <tr>
                         <th>Title</th>
@@ -217,6 +220,35 @@ require("userdata.php");
       </div>
       
     </div>
+	<!-- Modals -->
+	<div tabindex="-1" role="dialog" aria-labelledby="NewIdeaModalLabel" class="modal animated fadeInLeft" id="new_idea_modal">
+		<div role="document" class="modal-dialog">
+		  <div class="modal-content">
+			<div class="modal-header">
+			  <button type="button" data-dismiss="modal" aria-label="Close" class="close"><span aria-hidden="true"><i class="ti-close"></i></span></button>
+			  <h4 id="NewIdeaModalLabel" class="modal-title">Add New Idea</h4>
+			</div>
+			<div class="modal-body">
+				<div class="form-group">
+				  <label for="new_idea_title">Idea Title*</label>
+				  <input id="new_idea_title" type="text" placeholder="Enter Title" class="form-control" value="" maxlength="100">
+				</div>
+				<div class="form-group">
+				  <label for="new_idea_desc">Idea Description*</label>
+				  <textarea id="new_idea_desc" placeholder="Enter Description" class="form-control" rows="5"></textarea>
+				</div>
+				<div class="form-group">
+				  <label>Images (Optional)</label>
+				  <form id="type-dz" action="upload_image.php" class="dropzone"></form>
+				</div>
+			</div>
+			<div class="modal-footer">
+			  <button type="button" data-dismiss="modal" class="btn btn-raised btn-default">Close</button>
+			  <button type="button" class="btn btn-raised btn-black" id="save_new_idea">Submit</button>
+			</div>
+		  </div>
+		</div>
+	</div>
     <!-- jQuery-->
     <script type="text/javascript" src="plugins/jquery/dist/jquery.min.js"></script>
     <!-- Bootstrap JavaScript-->
@@ -232,24 +264,55 @@ require("userdata.php");
     <script type="text/javascript" src="plugins/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
     <!-- jQuery Easy Pie Chart-->
     <script type="text/javascript" src="plugins/jquery.easy-pie-chart/dist/jquery.easypiechart.min.js"></script>
+    <!-- DropzoneJS-->
+    <script type="text/javascript" src="plugins/dropzone/dist/min/dropzone.min.js"></script>
     <!-- Custom JS-->
     <script type="text/javascript" src="build/js/third-layout/app.js"></script>
     <script type="text/javascript" src="build/js/third-layout/demo.js"></script>
 	<script>
+	Dropzone.autoDiscover = false;
 	$(document).ready(function(){
+		$("#type-dz").dropzone({
+			url:"upload_image.php",
+			paramName:"file",
+			acceptedFiles:"image/*",
+			maxFilesize:2,
+			maxThumbnailFilesize:.5,
+			addRemoveLinks:true,
+			dictDefaultMessage:"<i class='icon-dz fa fa-file-image-o'></i>Drop files here to upload",
+			success:function(file,response){
+				console.log(response);
+			},
+			error:function(response){
+				console.log(response);
+			}
+		});
+		Dropzone.options = {
+		  paramName: "file", // The name that will be used to transfer the file
+		  maxFilesize: 2, // MB
+		  accept: function(file, done) {
+			if (file.type != "image/jpeg" && file.type != "image/png") {
+			  done("Naha, you don't.");
+			}
+			else { done(); }
+		  }
+		};
 		$("#ideas").dataTable({
 			"order": [[ 3, "desc" ]],
 			"lengthMenu": [[25, 50, -1], [25, 50, "All"]],
 			"fnRowCallback": function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
 				switch(aData[4]){
 					case 'Unread':
-						$(nRow).css('color', 'red')
+						$(nRow).addClass('danger')
 						break;
 					case 'Read':
-						$(nRow).css('color', 'green')
+						$(nRow).addClass('success')
 						break;
 				}
 			}
+		});
+		$('body').on("click","#add_new_idea",function(){
+			$("#new_idea_modal").modal("show");
 		});
 	});
 	</script>
